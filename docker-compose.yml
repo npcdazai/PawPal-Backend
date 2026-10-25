@@ -1,0 +1,57 @@
+# Local infrastructure for partner verification:
+#   docker compose up -d
+# then in .env:  DATABASE_URL=postgres://pawpal:pawpal-dev-only@localhost:5432/pawpal
+# The first start downloads qwen2.5vl:7b (~6 GB); `docker compose logs -f ollama-pull` shows progress.
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: pawpal
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pawpal-dev-only}
+      POSTGRES_DB: pawpal
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Applied on first start; the API also re-applies it (idempotently) on boot.
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pawpal -d pawpal"]
+      interval: 5s
+      retries: 12
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "127.0.0.1:11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      retries: 12
+    # Qwen2.5-VL 7B takes tens of seconds per ID check on CPU. With an NVIDIA GPU
+    # (and the NVIDIA Container Toolkit), uncomment for a few seconds instead:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  # One-shot: pulls the vision model into the shared volume, then exits.
+  ollama-pull:
+    image: ollama/ollama:latest
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint: ["ollama", "pull", "${VLM_MODEL:-qwen2.5vl:7b}"]
+    restart: "no"
+
+volumes:
+  pgdata:
+  ollama:

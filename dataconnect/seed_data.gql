@@ -1,0 +1,27 @@
+mutation SeedDatabase @transaction {
+  user_insertMany(data: [
+    { username: "alice_w", email: "alice@example.com", phoneNumber: "1234567890" },
+    { username: "bob_d", email: "bob@example.com", phoneNumber: "0987654321" },
+    { username: "charlie_g", email: "charlie@example.com", phoneNumber: "1122334455" }
+  ])
+  wallet_insertMany(data: [
+    { balance: 100.50, currency: "USD", user: { id: "00000000-0000-0000-0000-000000000001" } },
+    { balance: 250.00, currency: "EUR", user: { id: "00000000-0000-0000-0000-000000000002" } },
+    { balance: 0.00, currency: "GBP", user: { id: "00000000-0000-0000-0000-000000000003" } }
+  ])
+  transaction_insertMany(data: [
+    { amount: 50.0, status: "COMPLETED", type: "TRANSFER", sender: { id: "00000000-0000-0000-0000-000000000001" }, receiver: { id: "00000000-0000-0000-0000-000000000002" }, note: "Rent" },
+    { amount: 25.0, status: "PENDING", type: "PAYMENT", sender: { id: "00000000-0000-0000-0000-000000000002" }, receiver: { id: "00000000-0000-0000-0000-000000000003" }, note: "Dinner" },
+    { amount: 10.0, status: "FAILED", type: "REFUND", sender: { id: "00000000-0000-0000-0000-000000000003" }, receiver: { id: "00000000-0000-0000-0000-000000000001" }, note: "Service fee" }
+  ])
+  bankAccount_insertMany(data: [
+    { providerName: "Chase", lastFourDigits: "1234", user: { id: "00000000-0000-0000-0000-000000000001" } },
+    { providerName: "BoA", lastFourDigits: "5678", user: { id: "00000000-0000-0000-0000-000000000002" } },
+    { providerName: "Wells Fargo", lastFourDigits: "9012", user: { id: "00000000-0000-0000-0000-000000000003" } }
+  ])
+  notification_insertMany(data: [
+    { message: "Transaction successful", isRead: false, user: { id: "00000000-0000-0000-0000-000000000001" } },
+    { message: "Payment received", isRead: true, user: { id: "00000000-0000-0000-0000-000000000002" } },
+    { message: "New login detected", isRead: false, user: { id: "00000000-0000-0000-0000-000000000003" } }
+  ])
+}

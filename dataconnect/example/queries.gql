@@ -1,0 +1,145 @@
+mutation CreateUser($username: String!, $email: String!, $phoneNumber: String!) @auth(level: USER) {
+  user_insert(data: {id_expr: "auth.uid", username: $username, email: $email, phoneNumber: $phoneNumber})
+}
+
+mutation UpdateUser($username: String, $email: String, $phoneNumber: String) @auth(level: USER) {
+  user_update(key: {id_expr: "auth.uid"}, data: {username: $username, email: $email, phoneNumber: $phoneNumber})
+}
+
+mutation DeleteUser @auth(level: USER) {
+  user_delete(key: {id_expr: "auth.uid"})
+}
+
+query GetUser @auth(level: USER) {
+  user(key: {id_expr: "auth.uid"}) {
+    username
+    email
+    phoneNumber
+    profileImageUrl
+    createdAt
+  }
+}
+
+query ListAllUsers @auth(level: PUBLIC, insecureReason: "Publicly accessible list of users for discovery") {
+  users {
+    username
+    profileImageUrl
+  }
+}
+
+mutation CreateWallet($balance: Float!, $currency: String!) @auth(level: USER) {
+  wallet_insert(data: {balance: $balance, currency: $currency, user: {id_expr: "auth.uid"}})
+}
+
+mutation UpdateWallet($id: UUID!, $balance: Float) @auth(level: USER) {
+  wallet_update(key: {id: $id}, data: {balance: $balance})
+}
+
+mutation DeleteWallet($id: UUID!) @auth(level: USER) {
+  wallet_delete(key: {id: $id})
+}
+
+query GetWallet($id: UUID!) @auth(level: USER) {
+  wallet(key: {id: $id}) {
+    balance
+    currency
+  }
+}
+
+query ListMyWallets @auth(level: USER) {
+  wallets(where: {userId: {eq_expr: "auth.uid"}}) {
+    balance
+    currency
+  }
+}
+
+mutation CreateTransaction($amount: Float!, $status: String!, $type: String!, $receiverId: UUID!, $note: String) @auth(level: USER) {
+  transaction_insert(data: {
+    amount: $amount,
+    status: $status,
+    type: $type,
+    sender: {id_expr: "auth.uid"},
+    receiver: {id: $receiverId},
+    note: $note,
+    timestamp_expr: "request.time"
+  })
+}
+
+mutation UpdateTransactionStatus($id: UUID!, $status: String!) @auth(level: USER) {
+  transaction_update(key: {id: $id}, data: {status: $status})
+}
+
+mutation DeleteTransaction($id: UUID!) @auth(level: USER) {
+  transaction_delete(key: {id: $id})
+}
+
+query GetTransaction($id: UUID!) @auth(level: USER) {
+  transaction(key: {id: $id}) {
+    amount
+    status
+    type
+    note
+    timestamp
+  }
+}
+
+query ListMyTransactions @auth(level: USER) {
+  transactions(where: {_or: [{senderId: {eq_expr: "auth.uid"}}, {receiverId: {eq_expr: "auth.uid"}}]}) {
+    amount
+    status
+    type
+    note
+  }
+}
+
+mutation CreateBankAccount($providerName: String!, $lastFourDigits: String!) @auth(level: USER) {
+  bankAccount_insert(data: {providerName: $providerName, lastFourDigits: $lastFourDigits, user: {id_expr: "auth.uid"}})
+}
+
+mutation UpdateBankAccount($id: UUID!, $providerName: String) @auth(level: USER) {
+  bankAccount_update(key: {id: $id}, data: {providerName: $providerName})
+}
+
+mutation DeleteBankAccount($id: UUID!) @auth(level: USER) {
+  bankAccount_delete(key: {id: $id})
+}
+
+query GetBankAccount($id: UUID!) @auth(level: USER) {
+  bankAccount(key: {id: $id}) {
+    providerName
+    lastFourDigits
+  }
+}
+
+query ListMyBankAccounts @auth(level: USER) {
+  bankAccounts(where: {userId: {eq_expr: "auth.uid"}}) {
+    providerName
+    lastFourDigits
+  }
+}
+
+mutation CreateNotification($message: String!, $userId: UUID!) @auth(level: USER) {
+  notification_insert(data: {message: $message, isRead: false, user: {id: $userId}})
+}
+
+mutation MarkNotificationRead($id: UUID!) @auth(level: USER) {
+  notification_update(key: {id: $id}, data: {isRead: true})
+}
+
+mutation DeleteNotification($id: UUID!) @auth(level: USER) {
+  notification_delete(key: {id: $id})
+}
+
+query GetNotification($id: UUID!) @auth(level: USER) {
+  notification(key: {id: $id}) {
+    message
+    isRead
+  }
+}
+
+query ListMyNotifications @auth(level: USER) {
+  notifications(where: {userId: {eq_expr: "auth.uid"}}) {
+    message
+    isRead
+  }
+}

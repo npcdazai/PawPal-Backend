@@ -1,0 +1,36 @@
+type User @table {
+  username: String!
+  email: String!
+  phoneNumber: String!
+  profileImageUrl: String
+  createdAt: Timestamp
+}
+
+type Wallet @table {
+  balance: Float!
+  currency: String!
+  user: User!
+}
+
+type Transaction @table {
+  amount: Float!
+  status: String!
+  type: String!
+  sender: User!
+  receiver: User!
+  note: String
+  timestamp: Timestamp
+}
+
+type BankAccount @table {
+  providerName: String!
+  lastFourDigits: String!
+  user: User!
+}
+
+type Notification @table {
+  message: String!
+  isRead: Boolean!
+  user: User!
+  transaction: Transaction
+}
